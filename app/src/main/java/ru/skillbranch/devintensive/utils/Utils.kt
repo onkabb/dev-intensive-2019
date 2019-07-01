@@ -9,46 +9,48 @@ object Utils {
         'ъ' to "", 'ы' to "i", 'ь' to "", 'э' to "e", 'ю' to "yu", 'я' to "ya"
     )
 
-    fun parseFullName (fullName:String?) : Pair <String?, String?> {
+    fun parseFullName(fullName: String?): Pair<String?, String?> {
+        val parts: List<String>? = fullName?.replaceAll("  ", " ")?.split(" ")
 
-        when (fullName) {
-            null, "" -> return "null" to "null"
-        }
-
-        var parts: List<String>? =fullName?.split(" ")
-
-        var firstName = parts?.getOrNull(0)
-        var lastName = parts?.getOrNull(1)
-
-        when (firstName) {
-            null, "" -> return "null" to "null"
-            else -> if (lastName == ""){
-                return firstName to "null"
-            }
-        }
+        val firstName = parts?.notEmptyOrNullAt(0)
+        val lastName = parts?.notEmptyOrNullAt(1)
 
         return firstName to lastName
     }
 
-
-    fun transliteration(payload: String, divider: String = " ") = buildString {
-        payload.forEach {
-            append(
-                when {
-                    it == ' ' -> divider
-                    it.isUpperCase() -> translitMap[it.toLowerCase()]?.capitalize() ?: it.toString()
-                    else -> translitMap[it] ?: it.toString()
-                }
-            )
+    private fun String.replaceAll(oldValue: String, newValue: String): String {
+        var result = this
+        while (result.contains(oldValue)) {
+            result = result.replace(oldValue, newValue)
         }
+        return result
     }
 
-    fun toInitials(firstName: String?, lastName: String?): String? = when {
-        firstName.isNullOrBlank() && lastName.isNullOrBlank() -> null
-        !firstName.isNullOrBlank() && lastName.isNullOrBlank() -> firstName[0].toUpperCase().toString()
-        firstName.isNullOrBlank() && !lastName.isNullOrBlank() -> lastName[0].toUpperCase().toString()
-        !firstName.isNullOrBlank() && !lastName.isNullOrBlank() -> firstName[0].toUpperCase() + lastName[0].toUpperCase().toString()
-        else -> throw IllegalStateException("Incorrect state in 'when' expression")
+
+private fun List<String>.notEmptyOrNullAt(index: Int) = getOrNull(index).let {
+    if ("" == it) null
+    else it
+}
+
+
+fun transliteration(payload: String, divider: String = " ") = buildString {
+    payload.forEach {
+        append(
+            when {
+                it == ' ' -> divider
+                it.isUpperCase() -> translitMap[it.toLowerCase()]?.capitalize() ?: it.toString()
+                else -> translitMap[it] ?: it.toString()
+            }
+        )
     }
+}
+
+fun toInitials(firstName: String?, lastName: String?): String? = when {
+    firstName.isNullOrBlank() && lastName.isNullOrBlank() -> null
+    !firstName.isNullOrBlank() && lastName.isNullOrBlank() -> firstName[0].toUpperCase().toString()
+    firstName.isNullOrBlank() && !lastName.isNullOrBlank() -> lastName[0].toUpperCase().toString()
+    !firstName.isNullOrBlank() && !lastName.isNullOrBlank() -> firstName[0].toUpperCase() + lastName[0].toUpperCase().toString()
+    else -> throw IllegalStateException("Incorrect state in 'when' expression")
+}
 }
 
